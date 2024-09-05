@@ -1,11 +1,22 @@
 import Book from "../models/BookModel.js";
 
-
+// add a new book
 export const createBook = async (req, res) => {
   try {
     const { title, author, ISBN, publicationDate, genre, numberOfCopies } =
       req.body;
 
+    // check if the book already exists
+    const existingBook = await Book.findOne({ ISBN: ISBN });
+
+    if (existingBook) {
+      return res.status(400).json({
+        success: false,
+        message: "Book already exists",
+      });
+    }
+
+    // create a new book
     let book = new Book({
       title,
       author,
@@ -32,6 +43,7 @@ export const createBook = async (req, res) => {
   }
 };
 
+// update the book details
 export const updateBook = async (req, res) => {
   try {
     const { title, author, ISBN, publicationDate, genre, numberOfCopies } =
@@ -39,6 +51,7 @@ export const updateBook = async (req, res) => {
 
     const book = await Book.findById(req.params.id);
 
+    // check if the book exists
     if (!book) {
       return res.status(404).json({
         success: false,
@@ -46,6 +59,7 @@ export const updateBook = async (req, res) => {
       });
     }
 
+    // update the book detail
     book.title = title || book.title;
     book.author = author || book.author;
     book.ISBN = ISBN || book.ISBN;
@@ -70,10 +84,12 @@ export const updateBook = async (req, res) => {
   }
 };
 
+// delete a book
 export const deleteBook = async (req, res) => {
   try {
-    let book = await Book.findById(req.params.id);
+    const book = await Book.findById(req.params.id);
 
+    // check if the book exists
     if (!book) {
       return res.status(404).json({
         success: false,
@@ -81,6 +97,7 @@ export const deleteBook = async (req, res) => {
       });
     }
 
+    // soft delete the book 
     book.isDeleted = true;
 
     await book.save();

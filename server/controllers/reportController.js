@@ -1,7 +1,7 @@
 import Book from "../models/BookModel.js";
 import Borrow from "../models/BorrowModel.js";
 
-// Retrieves the most borrowed books
+// retrieves the most borrowed books
 export const getMostBorrowedBooks = async (req, res) => {
   try {
     const mostBorrowedBooks = await Borrow.aggregate([
@@ -45,6 +45,7 @@ export const getMostBorrowedBooks = async (req, res) => {
   }
 };
 
+// retrieves the active members by their borrowing history
 export const getActiveMembers = async (req, res) => {
   try {
     const activeMembers = await Borrow.aggregate([
@@ -87,28 +88,34 @@ export const getActiveMembers = async (req, res) => {
   }
 };
 
+// retrieves the available books
 export const getAvailableBooks = async (req, res) => {
   try {
     const [mostBorrowedBooks, totalBooks, availableBooks] = await Promise.all([
+      // Fetch top 10 most borrowed books, sorted by borrowedCount in descending order
       Book.aggregate([
-        { $match: { isDeleted: false } },
+        { $match: { isDeleted: false } }, 
         { $sort: { borrowedCount: -1 } },
         { $limit: 10 },
         { $project: { title: 1, author: 1, borrowedCount: 1 } },
       ]),
+
+      // Count the total number of books (non-deleted)
       Book.aggregate([
-        { $match: { isDeleted: false } },
-        { $count: "totalBooks" },
+        { $match: { isDeleted: false } }, 
+        { $count: "totalBooks" }, 
       ]),
+
+      // Sum the total available copies across all non-deleted books
       Book.aggregate([
-        { $match: { isDeleted: false } },
+        { $match: { isDeleted: false } }, 
         {
           $group: {
             _id: null,
             totalAvailableCopies: { $sum: "$availableCopies" },
           },
         },
-        { $project: { _id: 0, totalAvailableCopies: 1 } },
+        { $project: { _id: 0, totalAvailableCopies: 1 } }, 
       ]),
     ]);
 
@@ -116,10 +123,11 @@ export const getAvailableBooks = async (req, res) => {
       success: true,
       mostBorrowedBooks,
       totalBooks: totalBooks[0]?.totalBooks,
-      availableBooks: availableBooks[0]?.totalAvailableCopies
+      availableBooks: availableBooks[0]?.totalAvailableCopies,
     });
   } catch (err) {
     console.error("Error fetching book statistics", err);
     throw err;
   }
 };
+

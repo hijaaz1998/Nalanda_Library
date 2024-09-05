@@ -9,10 +9,32 @@ import {
 
 const reportRouter = express.Router();
 
-reportRouter.use(authMiddleware, roleCheck("ADMIN"));
+// Apply authentication and role verification middleware to all routes under this router.
+// Ensures that only authenticated users with the 'ADMIN' role can access the following routes.
+reportRouter.use(authMiddleware, roleCheck("ADMIN"))
 
-reportRouter.get("/most_borrowed_books", getMostBorrowedBooks);
-reportRouter.get("/active_users", getActiveMembers);
-reportRouter.get("/available_books", getAvailableBooks);
+/**
+ * @route GET /most_borrowed_books
+ * @description Endpoint to retrieve the list of most borrowed books.
+ * @access Admin only
+ * @returns {Object} - Response with a list of most borrowed books.
+ */
+reportRouter.get("/most_borrowed_books", getMostBorrowedBooks)
+
+/**
+ * @route GET /active_users
+ * @description Endpoint to retrieve the list of active members.
+ * @access Admin only
+ * @returns {Object} - Response with a list of active members.
+ */
+reportRouter.get("/active_users", getActiveMembers)
+
+/**
+ * @route GET /available_books
+ * @description Endpoint to retrieve the list of available books.
+ * @access Admin only
+ * @returns {Object} - Response with a list of available books.
+ */
+reportRouter.get("/available_books", getAvailableBooks)
 
 export default reportRouter;

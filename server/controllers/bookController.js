@@ -1,17 +1,22 @@
 import Book from "../models/BookModel.js";
 import Borrow from "../models/BorrowModel.js";
 
+// list all the books in database that is not deleted
 export const listBooks = async (req, res) => {
   try {
+
+    // parse page and limit query params
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const { genre, author } = req.query;
 
     const query = { isDeleted: false };
 
+    // building query based on query params
     if (genre) query.genre = genre;
     if (author) query.author = author;
 
+    // fetching the books with query and limitng for pagination
     const books = await Book.find(query)
       .skip((page - 1) * limit)
       .limit(limit);
@@ -30,6 +35,7 @@ export const listBooks = async (req, res) => {
   }
 };
 
+// borrowing a book
 export const borrowBook = async (req, res) => {
   try {
     const bookId = req.params.id;
@@ -37,6 +43,7 @@ export const borrowBook = async (req, res) => {
 
     const book = await Book.findById(bookId);
 
+    // validate if the book
     if (!book || book.availableCopies < 1 || book.isDeleted) {
       return res.status(400).json({
         success: false,
@@ -44,6 +51,7 @@ export const borrowBook = async (req, res) => {
       });
     }
 
+    // creating a new borrow document
     const borrow = new Borrow({
       userId: userId,
       bookId: bookId,
@@ -69,15 +77,16 @@ export const borrowBook = async (req, res) => {
   }
 };
 
+// returning a book
 export const returnBook = async (req, res) => {
    try {
-     const bookId = req.params.id; // Extract book ID from request parameters
-     const userId = req.user.id;   // Extract user ID from authenticated user
+     const bookId = req.params.id; 
+     const userId = req.user.id;  
  
-     // Find the borrow record for the specific book and user
+     // find the borrow record for the specific book and user
      const borrow = await Borrow.findOne({ bookId: bookId, userId: userId });
  
-     // Check if the borrow record exists
+     // check if the borrow record exists
      if (!borrow) {
        return res.status(404).json({
          success: false,
@@ -85,10 +94,10 @@ export const returnBook = async (req, res) => {
        });
      }
  
-     // Find the book by its ID
+     // find the book by its ID
      const book = await Book.findById(bookId);
  
-     // Check if the book exists
+     // check if the book exists
      if (!book) {
        return res.status(404).json({
          success: false,
@@ -96,6 +105,7 @@ export const returnBook = async (req, res) => {
        });
      }
  
+     // updating the book and borrow documents
      book.availableCopies += 1;
      borrow.returnedDate = Date.now();
  
@@ -119,7 +129,7 @@ export const borrowHistory = async (req, res) => {
    try {
      const userId = req.user.id;
  
-     // Find all borrow records for the user, populate book details, and sort by creation date
+     // find all borrow records for the user, populate book details, and sort by creation date
      const history = await Borrow.find({ userId: userId })
        .populate("bookId")
        .sort({ createdAt: -1 });
