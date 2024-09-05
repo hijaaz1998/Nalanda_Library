@@ -1,5 +1,4 @@
 import Book from "../models/BookModel.js";
-import User from "../models/userModel.js";
 import Borrow from "../models/BorrowModel.js";
 
 export const listBooks = async (req, res) => {
